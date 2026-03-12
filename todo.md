@@ -1,0 +1,2 @@
+- [ ] App.tsx내 Constants 분리 → constants.ts
+- [ ] API 연결해 애니메이션 정보 가져와보기
