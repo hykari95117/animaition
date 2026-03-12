@@ -1,60 +1,17 @@
 import { useState, useCallback, KeyboardEvent } from "react";
+// ─── Components ───────────────────────────────────────────────────────────────
+import ScoreBadge from "./component/ScoreBadge";
+import AnimeCard from "./component/AnimeCard";
+import Modal from "./component/Modal";
+// ─── type ───────────────────────────────────────────────────────────────
+/**
+  * 타입'만' 가져올 때는 import type을 명시해 컴파일러가 해당 코드를 최종 javascript 결과물에서 제거하도록 한다.
+  * why?
+  * 타입/인터페이스는 런타임에 존재하지 않는 컴파일 전용 정보이기에 Vite가 일반 import로는 못 찾는 경우가 있다.
+  * import type을 쓰면 번들러에게 "이건 타입만 가져오는 거야"라고 명시해줘서 정상 동작한다.
+  */
+import type { Anime, AniListResponse, AnimeStatus, AnimeFormat, AnimeSeason } from './types';
 import "./App.css";
-
-// ─── Types ────────────────────────────────────────────────────────────────────
-
-interface AnimeTitle {
-  romaji: string | null;
-  native: string | null;
-  english: string | null;
-}
-
-interface CoverImage {
-  large: string;
-  color: string | null;
-}
-
-interface Studio {
-  name: string;
-}
-
-interface Studios {
-  nodes: Studio[];
-}
-
-type AnimeStatus = "FINISHED" | "RELEASING" | "NOT_YET_RELEASED" | "CANCELLED" | "HIATUS";
-type AnimeFormat = "TV" | "TV_SHORT" | "MOVIE" | "OVA" | "ONA" | "SPECIAL";
-type AnimeSeason = "WINTER" | "SPRING" | "SUMMER" | "FALL";
-
-interface Anime {
-  id: number;
-  title: AnimeTitle;
-  coverImage: CoverImage;
-  bannerImage: string | null;
-  genres: string[];
-  averageScore: number | null;
-  episodes: number | null;
-  status: AnimeStatus | null;
-  season: AnimeSeason | null;
-  seasonYear: number | null;
-  description: string | null;
-  studios: Studios;
-  format: AnimeFormat | null;
-}
-
-interface AniListResponse {
-  data: {
-    Page: {
-      pageInfo: {
-        total: number;
-        currentPage: number;
-        hasNextPage: boolean;
-      };
-      media: Anime[];
-    };
-  };
-  errors?: { message: string }[];
-}
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -106,170 +63,6 @@ const SEASON_LABEL: Record<AnimeSeason, string> = {
   SUMMER: "여름",
   FALL: "가을",
 };
-
-// ─── Components ───────────────────────────────────────────────────────────────
-
-interface ScoreBadgeProps {
-  score: number | null;
-}
-
-function ScoreBadge({ score }: ScoreBadgeProps) {
-  if (!score) return null;
-  const color = score >= 80 ? "#4ade80" : score >= 60 ? "#facc15" : "#f87171";
-  return (
-    <span className="score-badge" style={{ background: color }}>
-      ★ {score}
-    </span>
-  );
-}
-
-interface AnimeCardProps {
-  anime: Anime;
-  onClick: (anime: Anime) => void;
-}
-
-function AnimeCard({ anime, onClick }: AnimeCardProps) {
-  const title =
-    anime.title.english ?? anime.title.romaji ?? anime.title.native ?? "Unknown";
-  const accent = anime.coverImage.color ?? "#6366f1";
-
-  return (
-    <div
-      className="anime-card"
-      onClick={() => onClick(anime)}
-      style={{
-        "--accent": accent,
-        "--accent-shadow": `${accent}33`,
-        "--accent-light": `${accent}22`,
-      } as React.CSSProperties}
-    >
-      <div className="anime-card__image-wrap">
-        <img className="anime-card__image" src={anime.coverImage.large} alt={title} />
-        <div className="anime-card__gradient" />
-        <div className="anime-card__score-wrap">
-          <ScoreBadge score={anime.averageScore} />
-        </div>
-        {anime.status === "RELEASING" && (
-          <div className="anime-card__on-air">방영중</div>
-        )}
-      </div>
-      <div className="anime-card__info">
-        <div className="anime-card__title">{title}</div>
-        <div className="anime-card__tags">
-          {anime.genres.slice(0, 2).map((g) => (
-            <span key={g} className="tag-genre">{g}</span>
-          ))}
-          {anime.format && (
-            <span className="tag-format">{FORMAT_LABEL[anime.format]}</span>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-interface ModalProps {
-  anime: Anime | null;
-  onClose: () => void;
-}
-
-function Modal({ anime, onClose }: ModalProps) {
-  if (!anime) return null;
-
-  const title = anime.title.english ?? anime.title.romaji ?? anime.title.native ?? "Unknown";
-  const accent = anime.coverImage.color ?? "#6366f1";
-  const studio = anime.studios?.nodes?.[0]?.name;
-
-  return (
-    <div className="modal-backdrop" onClick={onClose}>
-      <div
-        className="modal"
-        onClick={(e) => e.stopPropagation()}
-        style={{
-          "--accent": accent,
-          "--accent-border": `${accent}44`,
-          "--accent-shadow": `${accent}22`,
-          "--accent-light": `${accent}22`,
-        } as React.CSSProperties}
-      >
-        {anime.bannerImage && (
-          <div className="modal__banner">
-            <img className="modal__banner-img" src={anime.bannerImage} alt="" />
-            <div className="modal__banner-gradient" />
-          </div>
-        )}
-        <div className="modal__body">
-          <img className="modal__cover" src={anime.coverImage.large} alt={title} />
-          <div className="modal__details">
-            <div className="modal__title">{title}</div>
-            {anime.title.native && (
-              <div className="modal__native">{anime.title.native}</div>
-            )}
-            <div className="modal__badges">
-              <ScoreBadge score={anime.averageScore} />
-              {anime.status && (
-                <span className="modal__badge-status">
-                  {STATUS_LABEL[anime.status]}
-                </span>
-              )}
-              {anime.format && (
-                <span className="modal__badge-format">
-                  {FORMAT_LABEL[anime.format]}
-                </span>
-              )}
-            </div>
-            <div className="modal__meta">
-              {anime.episodes && (
-                <div>
-                  <div className="modal__meta-label">에피소드</div>
-                  <div className="modal__meta-value">{anime.episodes}화</div>
-                </div>
-              )}
-              {anime.seasonYear && (
-                <div>
-                  <div className="modal__meta-label">방영 시기</div>
-                  <div className="modal__meta-value">
-                    {anime.seasonYear} {anime.season ? SEASON_LABEL[anime.season] : ""}
-                  </div>
-                </div>
-              )}
-              {studio && (
-                <div>
-                  <div className="modal__meta-label">제작사</div>
-                  <div className="modal__meta-value">{studio}</div>
-                </div>
-              )}
-            </div>
-            <div className="modal__genres">
-              {anime.genres.map((g) => (
-                <span key={g} className="modal__genre-tag">{g}</span>
-              ))}
-            </div>
-          </div>
-        </div>
-        {anime.description && (
-          <div className="modal__desc-section">
-            <div className="modal__divider" />
-            <div className="modal__description">
-              {anime.description.replace(/<[^>]*>/g, "").slice(0, 400)}
-              {anime.description.length > 400 ? "..." : ""}
-            </div>
-          </div>
-        )}
-        <div className="modal__link-section">
-          <a
-            className="modal__link"
-            href={`https://anilist.co/anime/${anime.id}`}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            AniList에서 보기 →
-          </a>
-        </div>
-      </div>
-    </div>
-  );
-}
 
 // ─── App ──────────────────────────────────────────────────────────────────────
 
