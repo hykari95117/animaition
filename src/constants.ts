@@ -1,4 +1,24 @@
-export const ANILIST_API = "https://api.anilist.co/graphql";
+export const ANILIST_API = "https://graphql.anilist.co";
+
+export const GET_ANIME_BY_ID_QUERY = `
+  query GetAnimeById($id: Int!) {
+    Media(id: $id, type: ANIME) {
+      id
+      title { romaji native english }
+      coverImage { large color }
+      bannerImage
+      genres
+      averageScore
+      episodes
+      status
+      season
+      seasonYear
+      description(asHtml: false)
+      studios(isMain: true) { nodes { name } }
+      format
+    }
+  }
+`;
 
 export const SEARCH_QUERY = `
   query SearchAnime($search: String!, $page: Int) {

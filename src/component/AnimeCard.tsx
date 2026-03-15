@@ -1,3 +1,6 @@
+import ScoreBadge from './ScoreBadge';
+import { FORMAT_LABEL } from '../constants';
+
 interface AnimeCardProps {
   anime: Anime;
   onClick: (anime: Anime) => void;
