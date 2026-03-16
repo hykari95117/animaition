@@ -28,13 +28,12 @@ export default function App() {
   const [selected, setSelected] = useState<Anime | null>(null);
   // 검색 했는지 안 했는지
   const [searched, setSearched] = useState<boolean>(false);
-
-  // const handleSelectAnime = useCallback((anime: Anime): void => {
-  //   console.log(anime);
-  // }, []);
-  // console.log(handleSelectAnime);
-
-  const handleSelectAnime = (anime: Anime): void => setSelected(anime);
+  // AnimeCard 컴포넌트 클릭 시 호출되는 함수
+  // useCallback - 함수 자체를 메모이제이션, 함수를 반환
+  // useMemo - 계산 결과값을 메모이제이션, 값을 반환
+  const handleSelectAnime = useCallback((anime: Anime): void => {
+    setSelected(anime)
+  }, []);
 
   // 진격의 거인 예시 조회 (AniList ID: 16498)
   useEffect(() => {
