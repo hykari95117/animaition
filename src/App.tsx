@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, KeyboardEvent } from "react";
+import { useState, useCallback, useEffect, useMemo, KeyboardEvent } from "react";
 // ─── Components ───────────────────────────────────────────────────────────────
 import ScoreBadge from "./component/ScoreBadge";
 import AnimeCard from "./component/AnimeCard";
@@ -24,8 +24,17 @@ export default function App() {
   const [loading, setLoading] = useState<boolean>(false);
   // 검색 중 오류 발생 여부
   const [error, setError] = useState<string | null>(null);
+  // 애니메이션 목록 중 선택한 것(클릭한 것))
   const [selected, setSelected] = useState<Anime | null>(null);
+  // 검색 했는지 안 했는지
   const [searched, setSearched] = useState<boolean>(false);
+
+  // const handleSelectAnime = useCallback((anime: Anime): void => {
+  //   console.log(anime);
+  // }, []);
+  // console.log(handleSelectAnime);
+
+  const handleSelectAnime = (anime: Anime): void => setSelected(anime);
 
   // 진격의 거인 예시 조회 (AniList ID: 16498)
   useEffect(() => {
@@ -125,7 +134,7 @@ export default function App() {
             <div className="results__count">{results.length}개의 결과</div>
             <div className="results__grid">
               {results.map((anime) => (
-                <AnimeCard key={anime.id} anime={anime} onClick={setSelected} />
+                <AnimeCard key={anime.id} anime={anime} onClick={handleSelectAnime} />
               ))}
             </div>
           </>

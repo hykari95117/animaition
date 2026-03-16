@@ -1,3 +1,6 @@
+import ScoreBadge from "./ScoreBadge";
+import { STATUS_LABEL, FORMAT_LABEL, SEASON_LABEL } from '../constants';
+
 interface ModalProps {
   anime: Anime | null;
   onClose: () => void;

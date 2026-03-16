@@ -14,7 +14,7 @@ const AnimeCard = ({ anime, onClick }: AnimeCardProps) => {
   return (
     <div
       className="anime-card"
-      onClick={() => onClick(anime)}
+      onClick={() => onClick?.(anime)}
       style={{
         "--accent": accent,
         "--accent-shadow": `${accent}33`,
