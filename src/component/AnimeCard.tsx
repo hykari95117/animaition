@@ -42,6 +42,10 @@ const AnimeCard = ({ anime, onClick }: AnimeCardProps) => {
           )}
         </div>
       </div>
+      <div className="anime-card__actions">
+        <button className="anime-card__btn anime-card__btn--want" title="보고 싶어요">♥</button>
+        <button className="anime-card__btn anime-card__btn--watched" title="봤어요">✔</button>
+      </div>
     </div>
   );
 }
