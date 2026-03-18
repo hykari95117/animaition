@@ -1,3 +1,4 @@
+import { useCallback } from "react";
 import ScoreBadge from './ScoreBadge';
 import { FORMAT_LABEL } from '../constants';
 
@@ -7,6 +8,26 @@ interface AnimeCardProps {
 }
 
 const AnimeCard = ({ anime, onClick }: AnimeCardProps) => {
+  const localStorageFn = useCallback((key: string) => {
+    const raw = localStorage.getItem(key);
+    const arr: number[] = raw ? JSON.parse(raw) : [];
+    const updated = arr.includes(anime.id)
+      ? arr.filter((id) => id !== anime.id)
+      : [...arr, anime.id];
+    localStorage.setItem(key, JSON.stringify(updated));
+  }, []);
+  // }, [anime.id]);
+
+  const likeBtnClick = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation();
+    localStorageFn("likedAnimes");
+  }, [localStorageFn]);
+
+  const watchedBtnClick = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation();
+    localStorageFn("watchedAnimes");
+  }, [localStorageFn]);
+
   const title =
     anime.title.english ?? anime.title.romaji ?? anime.title.native ?? "Unknown";
   const accent = anime.coverImage.color ?? "#6366f1";
@@ -43,8 +64,8 @@ const AnimeCard = ({ anime, onClick }: AnimeCardProps) => {
         </div>
       </div>
       <div className="anime-card__actions">
-        <button className="anime-card__btn anime-card__btn--want" title="보고 싶어요">♥</button>
-        <button className="anime-card__btn anime-card__btn--watched" title="봤어요">✔</button>
+        <button className="anime-card__btn anime-card__btn--want" title="보고 싶어요" onClick={likeBtnClick}>👍</button>
+        <button className="anime-card__btn anime-card__btn--watched" title="봤어요" onClick={watchedBtnClick}>✔</button>
       </div>
     </div>
   );

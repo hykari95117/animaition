@@ -139,6 +139,8 @@ input::placeholder { color: #3a3a5c; }
   background: #111118;
   border: 1px solid #1e1e2e;
   border-radius: 14px;
+  display: flex;
+  flex-direction: column;
   overflow: hidden;
   cursor: pointer;
   transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
@@ -192,6 +194,7 @@ input::placeholder { color: #3a3a5c; }
 
 .anime-card__info {
   padding: 12px;
+  flex: 1;
 }
 
 .anime-card__actions {
@@ -201,7 +204,7 @@ input::placeholder { color: #3a3a5c; }
 
 .anime-card__btn {
   flex: 1;
-  padding: 8px 0;
+  height: 36px;
   font-size: 16px;
   border: none;
   background: none;
