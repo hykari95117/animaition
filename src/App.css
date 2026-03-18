@@ -17,6 +17,41 @@ body {
 
 input::placeholder { color: #3a3a5c; }
 
+/* ── Top Right Buttons ── */
+.top-right-buttons {
+  position: fixed;
+  top: 16px;
+  right: 20px;
+  display: flex;
+  gap: 8px;
+  z-index: 50;
+}
+
+.top-btn {
+  background: #111118;
+  border: 1px solid #1e1e2e;
+  border-radius: 10px;
+  color: #e2e8f0;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 8px 14px;
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+}
+
+.top-btn:hover {
+  background: #1e1e2e;
+  border-color: #6366f1;
+}
+
+.top-btn--watched {
+  color: #4ade80;
+}
+
+.top-btn__label {
+  color: #e2e8f0;
+}
+
 /* ── App ── */
 .app {
   min-height: 100vh;

@@ -97,6 +97,12 @@ export default function App() {
 
   return (
     <div className="app">
+      <div className="top-right-buttons">
+        <button className="top-btn">👍 좋아요</button>
+        <button className="top-btn top-btn--watched">
+          <span>✔</span> <span className="top-btn__label">봤어요</span>
+        </button>
+      </div>
       <div className="header">
         <div className="header__label">Anime Search</div>
         <h1 className="header__title">어떤 애니 찾아?</h1>
