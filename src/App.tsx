@@ -1,8 +1,10 @@
 import { useState, useCallback, useEffect, useMemo, KeyboardEvent } from "react";
+import { Routes, Route, useNavigate } from "react-router-dom";
 // ─── Components ───────────────────────────────────────────────────────────────
 import ScoreBadge from "./component/ScoreBadge";
 import AnimeCard from "./component/AnimeCard";
 import Modal from "./component/Modal";
+import WatchListPage from "./component/WatchListPage";
 // ─── type ───────────────────────────────────────────────────────────────
 /**
   * 타입'만' 가져올 때는 import type을 명시해 컴파일러가 해당 코드를 최종 javascript 결과물에서 제거하도록 한다.
@@ -16,6 +18,7 @@ import "./App.css";
 import { ANILIST_API, SEARCH_QUERY, GET_ANIME_BY_ID_QUERY, STATUS_LABEL, FORMAT_LABEL, SEASON_LABEL } from './constants';
 // ─── App ──────────────────────────────────────────────────────────────────────
 export default function App() {
+  const navigate = useNavigate();
   // 검색 내용
   const [query, setQuery] = useState<string>("");
   // 검색 결과
@@ -98,55 +101,61 @@ export default function App() {
   return (
     <div className="app">
       <div className="top-right-buttons">
-        <button className="top-btn">👍 좋아요</button>
-        <button className="top-btn top-btn--watched">
+        <button className="top-btn" onClick={() => navigate("/")}>HOME</button>
+        <button className="top-btn" onClick={() => navigate("/liked")}>👍 좋아요</button>
+        <button className="top-btn top-btn--watched" onClick={() => navigate("/watched")}>
           <span>✔</span> <span className="top-btn__label">봤어요</span>
         </button>
       </div>
-      <div className="header">
-        <div className="header__label">Anime Search</div>
-        <h1 className="header__title">어떤 애니 찾아?</h1>
-        <p className="header__subtitle">AniList 기반 애니메이션 검색 · 상세정보 확인</p>
-      </div>
-
-      <div className="search-bar">
-        <input
-          className="search-input"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          onKeyDown={handleKeyDown}
-          placeholder="제목을 입력하세요 (한글/영어/일어)"
-        />
-        <button
-          className="search-button"
-          onClick={() => search(query)}
-          disabled={loading}
-        >
-          {loading ? "..." : "검색"}
-        </button>
-      </div>
-
-      <div className="results">
-        {error && <div className="empty-error">{error}</div>}
-        {!searched && !loading && (
-          <div className="empty-hint">검색어를 입력하고 Enter를 눌러보세요</div>
-        )}
-        {searched && !loading && results.length === 0 && !error && (
-          <div className="empty-no-results">검색 결과가 없어요 😢</div>
-        )}
-        {results.length > 0 && (
+      <Routes>
+        <Route path="/" element={
           <>
-            <div className="results__count">{results.length}개의 결과</div>
-            <div className="results__grid">
-              {results.map((anime) => (
-                <AnimeCard key={anime.id} anime={anime} onClick={handleSelectAnime} />
-              ))}
+            <div className="header">
+              <div className="header__label">Anime Search</div>
+              <h1 className="header__title">어떤 애니 찾아?</h1>
+              <p className="header__subtitle">AniList 기반 애니메이션 검색 · 상세정보 확인</p>
             </div>
+            <div className="search-bar">
+              <input
+                className="search-input"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                onKeyDown={handleKeyDown}
+                placeholder="제목을 입력하세요 (한글/영어/일어)"
+              />
+              <button
+                className="search-button"
+                onClick={() => search(query)}
+                disabled={loading}
+              >
+                {loading ? "..." : "검색"}
+              </button>
+            </div>
+            <div className="results">
+              {error && <div className="empty-error">{error}</div>}
+              {!searched && !loading && (
+                <div className="empty-hint">검색어를 입력하고 Enter를 눌러보세요</div>
+              )}
+              {searched && !loading && results.length === 0 && !error && (
+                <div className="empty-no-results">검색 결과가 없어요 😢</div>
+              )}
+              {results.length > 0 && (
+                <>
+                  <div className="results__count">{results.length}개의 결과</div>
+                  <div className="results__grid">
+                    {results.map((anime) => (
+                      <AnimeCard key={anime.id} anime={anime} onClick={handleSelectAnime} />
+                    ))}
+                  </div>
+                </>
+              )}
+            </div>
+            <Modal anime={selected} onClose={() => setSelected(null)} />
           </>
-        )}
-      </div>
-
-      <Modal anime={selected} onClose={() => setSelected(null)} />
+        } />
+        <Route path="/liked" element={<WatchListPage type="liked" />} />
+        <Route path="/watched" element={<WatchListPage type="watched" />} />
+      </Routes>
     </div>
   );
 }
