@@ -10,6 +10,9 @@
 ## 2단계 — 핵심 기능
 - [X] "좋아요 / 봤어요" 리스트 (로컬스토리지로 시작)
 - [ ] 우측 상단의 "좋아요" 혹은 "봤어요" 버튼 클릭 -> 리스트 화면 전환 -> "좋아요" 혹은 "봤어요" 버튼 클릭 했던 애니 목록 보여줌(좌측: 애니 이미지 & 제목, 우측: 출시연도)
+- [ ] WatchListPage 진입 시 불필요한 API 재요청 방지
+      → App.tsx에서 likedAnimes/watchedAnimes 데이터를 상태로 관리
+      → 이미 fetch한 데이터는 재사용, 페이지 전환 시에도 유지
 - [ ] JustWatch API 연동 — 플랫폼별 시청 가능 정보 (넷플릭스, 왓챠, 라프텔 등)
 
 ## 3단계 — 재미있는 기능
@@ -25,6 +28,11 @@
 -->
 
 ## 4단계 — 인프라
-- [ ] Spring Boot 백엔드 + 데이터 캐싱
+- [ ] Spring Boot 백엔드 구축
+- [ ] Redis 캐싱 적용
+      → 브라우저에서 Redis 직접 접근 불가, 반드시 Spring Boot 백엔드 선행 필요
+      → 구조: 브라우저 → Spring Boot → Redis 캐시 → AniList API
+      → AniList API 응답을 Redis에 캐싱, 동일 요청 시 API 재호출 없이 Redis에서 반환
+      → 여러 유저가 같은 애니를 조회할 때 효과적
 - [ ] 로그인 / 내 리스트 동기화
-- [ ] Vercel 배포
+- [ ] Vercel 배포 (프론트) + Railway 또는 Render (Spring Boot 백엔드)
