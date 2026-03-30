@@ -35,6 +35,9 @@ export interface Anime {
   description: string | null;
   studios: Studios;
   format: AnimeFormat | null;
+  popularity?: number;
+  trending?: number;
+  favourites?: number;
 }
 
 export interface AniListResponse {

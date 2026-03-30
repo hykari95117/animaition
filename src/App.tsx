@@ -1,10 +1,12 @@
-import { useState, useCallback, useEffect, useMemo, KeyboardEvent } from "react";
+import { useState, useCallback, useEffect, useRef, KeyboardEvent } from "react";
 import { Routes, Route, useNavigate } from "react-router-dom";
 // ─── Components ───────────────────────────────────────────────────────────────
 import ScoreBadge from "./component/ScoreBadge";
 import AnimeCard from "./component/AnimeCard";
 import Modal from "./component/Modal";
 import WatchListPage from "./component/WatchListPage";
+import RankingPage from "./component/RankingPage";
+import GenrePage from "./component/GenrePage";
 // ─── type ───────────────────────────────────────────────────────────────
 /**
   * 타입'만' 가져올 때는 import type을 명시해 컴파일러가 해당 코드를 최종 javascript 결과물에서 제거하도록 한다.
@@ -15,7 +17,7 @@ import WatchListPage from "./component/WatchListPage";
 import type { Anime, AniListResponse, AnimeStatus, AnimeFormat, AnimeSeason } from './types';
 import "./App.css";
 // ─── Constants ────────────────────────────────────────────────────────────────
-import { ANILIST_API, SEARCH_QUERY, GET_ANIME_BY_ID_QUERY, STATUS_LABEL, FORMAT_LABEL, SEASON_LABEL } from './constants';
+import { ANILIST_API, SEARCH_QUERY, GET_TOP_ANIME_QUERY, STATUS_LABEL, FORMAT_LABEL, SEASON_LABEL } from './constants';
 // ─── App ──────────────────────────────────────────────────────────────────────
 export default function App() {
   const navigate = useNavigate();
@@ -31,6 +33,11 @@ export default function App() {
   const [selected, setSelected] = useState<Anime | null>(null);
   // 검색 했는지 안 했는지
   const [searched, setSearched] = useState<boolean>(false);
+  // 랭킹 TOP 10 애니
+  const [topAnimes, setTopAnimes] = useState<Anime[]>([]);
+  // 캐러셀 2~10위 시작 인덱스 (rest 배열 기준)
+  const [carouselIdx, setCarouselIdx] = useState<number>(0);
+  const trackRef = useRef<HTMLDivElement>(null);
   // AnimeCard 컴포넌트 클릭 시 호출되는 함수
   // useCallback - 함수 자체를 메모이제이션, 함수를 반환
   // useMemo - 계산 결과값을 메모이제이션, 값을 반환
@@ -38,36 +45,30 @@ export default function App() {
     setSelected(anime)
   }, []);
 
-  // 진격의 거인 예시 조회 (AniList ID: 16498)
   useEffect(() => {
-    const fetchAttackOnTitan = async (): Promise<void> => {
+    const fetchTopAnime = async (): Promise<void> => {
       try {
         const res = await fetch(ANILIST_API, {
           method: "POST",
           headers: { "Content-Type": "application/json", Accept: "application/json" },
-          body: JSON.stringify({ query: GET_ANIME_BY_ID_QUERY, variables: { id: 16498 } }),
+          body: JSON.stringify({ query: GET_TOP_ANIME_QUERY }),
         });
         const data: AniListResponse = await res.json();
-        /**
-         * data 변수(= res.json()의 반환값)를 console.log로 찍어보면 AniListResponse type의 구조와 다르다.
-         * 즉, 현재 응답값의 구조는 AniListResponse 타입과 맞지 않는다.
-
-         * 그럼에도 Error가 발생하지 않는 이유는 아래와 같다.(실제 응답값의 구조가 AniListResponse와 달라도 컴파일 에러가 안 나는 이유)
-         * 1. await res.json()의 반환 타입이 any이기 때문
-         * 2. any는 어떤 타입에도 할당할 수 있도록 허용된다.
-         * 3. 즉, TypeScript 입장에서는 네트워크에서 어떤 값이 올지 모르니 data: AniListResponse로 선언한 타입이겠거니 하고 믿는것이다.
-         */
-        console.group("진격의 거인 조회 예시");
-        console.log(data);
-        console.groupEnd();
-        setResults([data.data.Media]);
-        setSearched(true);
+        setTopAnimes(data.data.Page.media);
       } catch (e) {
-        console.error("조회 실패:", e);
+        console.error("랭킹 조회 실패:", e);
       }
     };
-    fetchAttackOnTitan();
+    fetchTopAnime();
   }, []);
+
+  // 캐러셀 인덱스 변경 시 smooth scroll
+  useEffect(() => {
+    if (!trackRef.current) return;
+    const el = trackRef.current;
+    // 아이템 1개 + gap(12px)의 이동 폭: (clientWidth + 12) / 3
+    el.scrollTo({ left: carouselIdx * (el.clientWidth + 12) / 3, behavior: "smooth" });
+  }, [carouselIdx]);
 
   // 검색
   const search = useCallback(async (q: string): Promise<void> => {
@@ -102,6 +103,8 @@ export default function App() {
     <div className="app">
       <div className="top-right-buttons">
         <button className="top-btn" onClick={() => navigate("/")}>HOME</button>
+        <button className="top-btn" onClick={() => navigate("/ranking")}>🏆 랭킹</button>
+        <button className="top-btn" onClick={() => navigate("/genre")}>🎭 장르</button>
         <button className="top-btn" onClick={() => navigate("/liked")}>👍 좋아요</button>
         <button className="top-btn top-btn--watched" onClick={() => navigate("/watched")}>
           <span>✔</span> <span className="top-btn__label">봤어요</span>
@@ -115,6 +118,69 @@ export default function App() {
               <h1 className="header__title">어떤 애니 찾아?</h1>
               <p className="header__subtitle">AniList 기반 애니메이션 검색 · 상세정보 확인</p>
             </div>
+            {!searched && topAnimes.length > 0 && (() => {
+              const first = topAnimes[0];
+              const rest = topAnimes.slice(1);
+              return (
+                <>
+                  <div
+                    className="top-ranked-banner"
+                    style={{ "--accent": first.coverImage.color ?? "#6366f1" } as React.CSSProperties}
+                    onClick={() => setSelected(first)}
+                  >
+                    <div
+                      className="top-ranked-banner__bg"
+                      style={{ backgroundImage: `url(${first.bannerImage ?? first.coverImage.large})` }}
+                    />
+                    <div className="top-ranked-banner__overlay" />
+                    <div className="top-ranked-banner__content">
+                      <span className="top-ranked-banner__label">지금 가장 핫한 애니</span>
+                      <p className="top-ranked-banner__title">
+                        {first.title.english ?? first.title.romaji ?? first.title.native}
+                      </p>
+                    </div>
+                  </div>
+                  {rest.length > 0 && (
+                    <div className="ranking-carousel">
+                      <p className="ranking-carousel__heading">TOP 10</p>
+                      <div className="ranking-carousel__nav">
+                        <button
+                          className="ranking-carousel__arrow"
+                          onClick={() => setCarouselIdx(i => Math.max(0, i - 3))}
+                          disabled={carouselIdx === 0}
+                        >‹</button>
+                        <div className="ranking-carousel__track" ref={trackRef}>
+                          {rest.map((anime, idx) => {
+                            const rank = idx + 2;
+                            const title = anime.title.english ?? anime.title.romaji ?? anime.title.native ?? "Unknown";
+                            return (
+                              <div key={anime.id} className="ranking-carousel__item" onClick={() => setSelected(anime)}>
+                                <div
+                                  className="ranking-carousel__img-wrap"
+                                  style={{ backgroundImage: `url(${anime.bannerImage ?? anime.coverImage.large})` }}
+                                >
+                                  <div className="ranking-carousel__overlay" />
+                                  <span className="ranking-carousel__rank-num">{rank}</span>
+                                  <div className="ranking-carousel__content">
+                                    <span className="ranking-carousel__rank-label">{rank}위</span>
+                                    <p className="ranking-carousel__title">{title}</p>
+                                  </div>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                        <button
+                          className="ranking-carousel__arrow"
+                          onClick={() => setCarouselIdx(i => Math.min(rest.length - 3, i + 3))}
+                          disabled={carouselIdx + 3 >= rest.length}
+                        >›</button>
+                      </div>
+                    </div>
+                  )}
+                </>
+              );
+            })()}
             <div className="search-bar">
               <input
                 className="search-input"
@@ -133,9 +199,6 @@ export default function App() {
             </div>
             <div className="results">
               {error && <div className="empty-error">{error}</div>}
-              {!searched && !loading && (
-                <div className="empty-hint">검색어를 입력하고 Enter를 눌러보세요</div>
-              )}
               {searched && !loading && results.length === 0 && !error && (
                 <div className="empty-no-results">검색 결과가 없어요 😢</div>
               )}
@@ -153,6 +216,8 @@ export default function App() {
             <Modal anime={selected} onClose={() => setSelected(null)} />
           </>
         } />
+        <Route path="/ranking" element={<RankingPage />} />
+        <Route path="/genre" element={<GenrePage />} />
         <Route path="/liked" element={<WatchListPage type="liked" />} />
         <Route path="/watched" element={<WatchListPage type="watched" />} />
       </Routes>

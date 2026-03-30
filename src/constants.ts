@@ -1,5 +1,82 @@
 export const ANILIST_API = "https://graphql.anilist.co";
 
+export const GENRE_LIST = [
+  "Action", "Adventure", "Comedy", "Drama", "Ecchi",
+  "Fantasy", "Horror", "Mahou Shoujo", "Mecha", "Music",
+  "Mystery", "Psychological", "Romance", "Sci-Fi",
+  "Slice of Life", "Sports", "Supernatural", "Thriller",
+];
+
+export const GET_GENRE_ANIME_QUERY = `
+  query GetAnimeByGenre($genre: String, $page: Int) {
+    Page(page: $page, perPage: 20) {
+      pageInfo { hasNextPage }
+      media(type: ANIME, genre: $genre, sort: SCORE_DESC) {
+        id
+        title { romaji native english }
+        coverImage { large color }
+        bannerImage
+        genres
+        averageScore
+        episodes
+        status
+        season
+        seasonYear
+        description(asHtml: false)
+        studios(isMain: true) { nodes { name } }
+        format
+      }
+    }
+  }
+`;
+
+export const GET_RANKING_QUERY = `
+  query GetRanking($sort: [MediaSort]) {
+    Page(page: 1, perPage: 10) {
+      media(type: ANIME, sort: $sort, format: TV) {
+        id
+        title { romaji native english }
+        coverImage { large color }
+        bannerImage
+        genres
+        averageScore
+        popularity
+        trending
+        favourites
+        episodes
+        status
+        season
+        seasonYear
+        description(asHtml: false)
+        studios(isMain: true) { nodes { name } }
+        format
+      }
+    }
+  }
+`;
+
+export const GET_TOP_ANIME_QUERY = `
+  query GetTopAnime {
+    Page(page: 1, perPage: 10) {
+      media(type: ANIME, sort: TRENDING_DESC, format: TV) {
+        id
+        title { romaji native english }
+        coverImage { large color }
+        bannerImage
+        genres
+        averageScore
+        episodes
+        status
+        season
+        seasonYear
+        description(asHtml: false)
+        studios(isMain: true) { nodes { name } }
+        format
+      }
+    }
+  }
+`;
+
 export const GET_ANIME_BY_IDS_QUERY = `
   query GetAnimeByIds($ids: [Int]) {
     Page(perPage: 50) {
